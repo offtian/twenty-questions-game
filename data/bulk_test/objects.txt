@@ -1,0 +1,13 @@
+apple
+television
+computer
+airplane
+house
+tree
+coat
+shoes
+car
+train
+shower
+frisbee
+cow
