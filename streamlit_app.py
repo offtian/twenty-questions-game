@@ -36,7 +36,7 @@ class StreamlitChatApp:
         setup_streamlit_page()
         initialize_question_count()
         (
-            openai_api_type,
+            self.openai_api_type,
             deployment_name,
             api_base,
             api_version,
@@ -44,7 +44,7 @@ class StreamlitChatApp:
         ) = get_api_credentials(is_streamlit_active=True)
         self.temperature = get_temperature_setting()  # Get temperature setting
         self.llm = create_llm(
-            openai_api_type,
+            self.openai_api_type,
             deployment_name,
             api_base,
             api_version,
@@ -121,7 +121,7 @@ class StreamlitChatApp:
             "user_input": user_input,
             "temperature": self.temperature,
             "llm_details": {
-                "api_type": self.llm.openai_api_type,
+                "api_type": self.openai_api_type,
                 "deployment_name": "DEPLOYMENT_NAME",  # Anonymised
             },
             "user_feedback": user_feedback,

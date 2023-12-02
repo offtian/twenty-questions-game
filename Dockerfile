@@ -31,4 +31,4 @@ WORKDIR /code
 
 RUN ls -la /code
 
-CMD streamlit run /code/streamlit_app.py --server.port=8502 --server.address=0.0.0.0 --logger.level=info 2> streamlit_logs.log
+CMD streamlit run /code/streamlit_app.py --server.port=8502 --logger.level=info 2> streamlit_logs.log
