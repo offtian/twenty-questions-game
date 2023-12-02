@@ -1,6 +1,10 @@
 [theme]
-primaryColor="#5fe0da"
-secondaryBackgroundColor="#bcbcbc"
+primaryColor="#107481"
+secondaryBackgroundColor="#F9F9FA"
 theme="light"
 textColor="#010101"
 font="sans serif"
+
+[logger]
+level = "info"
+messageFormat = "%(asctime)s %(message)s"
