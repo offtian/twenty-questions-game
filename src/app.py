@@ -1,7 +1,7 @@
 import openai
 import os
 from dotenv import load_dotenv
-from langchain.chat_models import AzureChatOpenAI
+from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 from langchain.memory import ConversationBufferMemory
 from langchain.memory.chat_message_histories import StreamlitChatMessageHistory
 
@@ -21,42 +21,83 @@ class StreamlitChatApp:
 
     def __init__(self):
         """Initialize the Streamlit app, load environment variables, and set up the game."""
-        load_dotenv()
-        self.setup_streamlit()
-        self.retrieve_api_key()
-        self.initialize_openai()
-        self.setup_memory()
-        self.setup_game()
+        load_dotenv()  # Load environment variables from a .env file
+        self.setup_streamlit()  # Set up Streamlit page configuration and session state
+        self.retrieve_api_values()  # Retrieve API credentials
+        self.initialize_openai()  # Initialize the OpenAI model based on retrieved credentials
+        self.setup_memory()  # Set up memory for storing chat history
+        self.setup_game()  # Initialize the game logic
 
-    def retrieve_api_key(self):
-        """Retrieve the OpenAI API key from the Streamlit sidebar input.
+    def retrieve_api_values(self):
+        """Retrieve the OpenAI API key from either local env or Streamlit sidebar input.
         Ensures user-provided credentials are used for API access.
         """
         with st.sidebar:
-            self.openai_api_key = st.text_input(
-                label="OpenAI API Key", key="chatbot_api_key", type="password"
+            # User selects the API type (Azure or OpenAI) through a dropdown
+            self.openai_api_type = st.selectbox(
+                label="OpenAI API Type",
+                options=["azure", "openai"],
+                key="chatbot_api_type",
+                index=0,
             )
+            self.openai_api_key = None
+
+            # If Azure is selected, retrieve Azure-specific settings
+            if self.openai_api_type == "azure":
+                self.deployment_name = os.getenv("DEPLOYMENT_NAME") or st.text_input(
+                    label="Azure Deployment Name", key="chatbot_deployment_name"
+                )
+                self.openai_api_base = os.getenv("OPENAI_API_BASE") or st.text_input(
+                    label="OpenAI API Base URL", key="chatbot_api_base"
+                )
+                self.openai_api_version = os.getenv(
+                    "OPENAI_API_VERSION"
+                ) or st.selectbox(
+                    label="OpenAI API Version",
+                    key="chatbot_api_version",
+                    options=["2023-03-15-preview", "2023-05-15"],
+                    index=0,
+                )
+                self.openai_api_key = os.getenv("OPENAI_API_KEY") or st.text_input(
+                    label="OpenAI API Key", key="chatbot_api_key", type="password"
+                )
+
+            # Prompt for OpenAI API key if not already provided
             if not self.openai_api_key:
                 st.info("Please add your OpenAI API key to continue.")
-                st.stop()
-            st.markdown(
-                "[Get an OpenAI API key](https://platform.openai.com/account/api-keys)"
-            )
+                self.openai_api_key = st.text_input(
+                    label="OpenAI API Key", key="chatbot_api_key", type="password"
+                )
+                if not self.openai_api_key:
+                    st.stop()
+                    st.markdown(
+                        "[Get an OpenAI API key](https://platform.openai.com/account/api-keys)"
+                    )
 
     def initialize_openai(self):
         """Initialize the OpenAI settings with the retrieved API key and environment variables."""
 
-        openai.api_type = os.getenv("OPENAI_API_TYPE")
-        openai.api_base = os.getenv("OPENAI_API_BASE")
-        openai.api_version = os.getenv("OPENAI_API_VERSION")
-        openai.api_key = self.openai_api_key
-        self.llm = AzureChatOpenAI(azure_deployment=os.getenv("DEPLOYMENT_NAME"))
+        if self.openai_api_type == "azure":
+            self.llm = AzureChatOpenAI(
+                azure_deployment=self.deployment_name,
+                base_url=self.openai_api_base,
+                api_key=self.openai_api_key,
+                api_version=self.openai_api_version,
+            )
+        elif self.openai_api_type == "openai":
+            self.llm = ChatOpenAI(
+                model_name="gpt-3.5-turbo",
+                api_key=self.openai_api_key,
+            )
+        else:
+            raise ValueError("Unsupported API type")
 
     def setup_streamlit(self):
         """Configure Streamlit's page settings and initialize the session state for question count."""
         st.set_page_config(page_title="20 Questions with LLM", page_icon="🧠")
         st.title("🧠 Play 20 Questions with LLM")
         st.divider()
+        # Initialize the question count in the session state if not already present
         if "question_count" not in st.session_state:
             st.session_state.question_count = 1
 
@@ -107,12 +148,11 @@ class StreamlitChatApp:
 
         if st.session_state.question_count > 20:
             st.chat_message("ai").write(
-                "I am sorry, I didn't guess the object you're thinking about!"
+                "I am sorry, I couldn't guess the object you're thinking about!"
             )
 
             st.error("Game over! The AI failed to guess in 20 questions.")
             st.button("Restart Game", on_click=self.restart_game)
-            # self.restart_game()
             st.stop()
 
     def restart_game(self):
