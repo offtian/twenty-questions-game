@@ -2,6 +2,7 @@
 #################################################################################
 # GLOBALS                                                                       #
 #################################################################################
+export PORT=8502
 
 PROJECT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 BUCKET = [OPTIONAL] your-bucket-for-syncing-data (do not include 's3://')
@@ -14,6 +15,19 @@ HAS_CONDA=False
 else
 HAS_CONDA=True
 endif
+#################################################################################
+# DOCKER COMMANDS                                                               #
+#################################################################################
+build:
+	docker build -t $(PROJECT_NAME) .
+
+run:
+	docker run -it --rm -p=$(PORT):$(PORT) --name="$(PROJECT_NAME)" $(PROJECT_NAME)
+
+up: build run
+
+stop:
+	docker stop $(PROJECT_NAME); docker rm $(PROJECT_NAME)
 
 #################################################################################
 # COMMANDS                                                                      #
