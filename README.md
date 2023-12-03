@@ -6,10 +6,27 @@ A GPT based LLM to play 20Q games with human to solve situational puzzle.
 Cloud-based Architecture Design:
 -----------------
 
-A basic [hosted streamlit web app (accessible here)](https://ec2-35-178-210-239.eu-west-2.compute.amazonaws.com:8502) deployment design can be found below. Streamlit doesn't support serverless deployment yet, thus an EC2 instance was used for deployment:
+#### #1: Deploy on EC2 instance
+A basic **hosted streamlit web app** deployment design can be found below. Streamlit doesn't support serverless deployment yet, thus an EC2 instance was used for deployment:
 ![basic_deployment](references/images/basic_implementation.png)
 
-However, in reality, deploying web app on an EC2 instance is very expensive. It's much cheaper to deploy over a set of serverless services. Some key components include:
+#### #2: Deploy on ECR + Fargate
+An alternative to deploy a streamlit web app is through AWS Elastic Container Registry (ECR) with AWS ECS Fargate.
+- **GitHub & GitHub Actions**: The codebase resides on GitHub. GitHub Actions is used for CI/CD, automating the process of building the Docker container and pushing it to AWS ECR.
+- **AWS Elastic Container Registry (ECR)**: Stores Docker container images.
+- **AWS ECS Fargate**:
+  - **Task Definition**: Describes the Docker container and its settings.
+  - **Service**: Runs and manages tasks in Fargate.
+- **Application Load Balancer (ALB)**: Distributes incoming application traffic across multiple targets, such as Amazon ECS tasks.
+- **Virtual Private Cloud (VPC)**: The network that ties everything together. It contains subnets which can be public or private, and in which the ECS tasks and ALB are located.
+
+The deployed app can be accessed [here](http://ec2-3-8-91-13.eu-west-2.compute.amazonaws.com:8502/).
+![fargate_deployment](references/images/implementation_with_fargate.png)
+
+#### #3: Deploy LLM Chain as a Lambda Function
+However, in reality, deploying web app on an EC2 instance is very expensive. It's much cheaper to deploy over a set of event-based serverless services. I didn't choose to build this deployment because it involves more AWS services than the aforementioned two deployments. In production, this is the best approach going forward when customer-facing and incurring a lot of requests. 
+
+Some key components include:
 1. **Web App with Amazon Amplify**: The frontend is hosted on AWS Amplify, a platform for building secure and scalable web applications. Amplify abstracts away much of the infrastructure management, which reduces costs by automatically scaling to meet demand and charging only for actual usage.
 2. **Amazon API Gateway**: This service manages incoming API requests and routes them to the appropriate backend services, such as AWS Lambda functions. It's cost-effective because it scales automatically with the number of incoming requests and you pay only for the calls made to your APIs and the data transferred out.
 3. **AWS Lambda**: The LLM Chain is executed in Lambda functions, which are event-driven and fully managed by AWS. This means no cost is incurred for idle server time, and you only pay for the compute time consumed, with a free tier available. An example function could be found [here](./lambda_app.py)
@@ -21,6 +38,24 @@ However, in reality, deploying web app on an EC2 instance is very expensive. It'
 
 ![aws_deployment](references/images/AWS_architecture.png)
 
+#### Architecture Review
+| Aspect             | EC2 Instance Deployment         | ECR + Fargate Deployment        | Lambda Function Deployment (with Amplify, API Gateway, etc.) |
+|--------------------|---------------------------------|---------------------------------|--------------------------------------------------------------|
+| **Cost**           | Moderate to high; continuous running costs regardless of usage. | Lower than EC2 for variable loads; pay per use. | Lowest; pay only for the resources used during function execution and storage. |
+| **Runtime**        | Continuous; always on.          | On-demand; scales with load.    | Event-driven; runs only when invoked. |
+| **Latency**        | Potentially lower as the server is always on. | Slightly higher due to container spin-up time. | Higher due to cold starts in Lambda functions. |
+| **Performance**    | Consistent; depends on the chosen instance type. | Scalable; can handle high load effectively. | Good for lightweight, stateless operations; performance can vary. |
+| **Maintenance Efforts** | Higher; requires OS and server management. | Lower; AWS manages the underlying infrastructure. | Minimal; most infrastructure is managed by AWS. |
+| **Deployment Efforts** | Moderate; involves setting up and configuring an EC2 instance. | Moderate to high; requires containerization and configuration of Fargate services. | Low; largely automated through services like Amplify and Lambda. |
+| **Scalability**    | Manual scaling; requires instance resizing or load balancing setup. | Automatic scaling; handles varying loads efficiently. | Highly scalable; automatically adjusts to the invocation rate. |
+| **Security**       | Requires diligent security practices for the server. | Managed by AWS but requires proper configuration. | High; AWS manages most of the security, with fine-grained IAM controls. |
+| **Flexibility**    | High; can run almost any type of application. | Moderate; limited by the capabilities of containers. | Limited to the runtime and constraints of Lambda functions. |
+| **Overall Suitability for Serverless** | Low; not a serverless solution. | Moderate; serverless in terms of infrastructure management. | High; epitomizes serverless architecture principles. |
+
+**Summary**:
+- **EC2 Instance Deployment**: Offers more control and immediate readiness, suitable for consistent workloads, but can be more expensive and requires more maintenance.
+- **ECR + Fargate Deployment**: Balances control with serverless benefits, offering scalability and reduced maintenance, ideal for variable workloads.
+- **Lambda Function Deployment**: Most cost-effective and low-maintenance, especially for sporadic or event-driven workloads, but comes with limitations in terms of cold starts and runtime constraints.
 
 Design Overview:
 ------------
