@@ -33,7 +33,7 @@ on:
 env:
   AWS_REGION: eu-west-2 # set this to your preferred AWS region, e.g. us-west-1
   ECR_REPOSITORY: twenty-games-llm # set this to your Amazon ECR repository name
-  ECS_SERVICE: twenty-games-llm # set this to your Amazon ECS service name
+  ECS_SERVICE: twenty-games-llm2 # set this to your Amazon ECS service name
   ECS_CLUSTER: twenty-games-llm # set this to your Amazon ECS cluster name
   ECS_TASK_DEFINITION:
     .aws/streamlit-app-revision1.json # set this to the path to your Amazon ECS task definition
