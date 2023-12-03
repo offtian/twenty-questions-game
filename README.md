@@ -11,7 +11,7 @@ A basic **hosted streamlit web app** deployment design can be found below. Strea
 ![basic_deployment](references/images/basic_implementation.png)
 
 #### #2: Deploy on ECR + Fargate
-An alternative to deploy a streamlit web app is through AWS Elastic Container Registry (ECR) with AWS ECS Fargate.
+An alternative to deploy a streamlit web app is through AWS Elastic Container Registry (ECR) with AWS ECS Fargate. The deployment workflow can be found in [.github/workflows/aws.yml](./.github/workflows/aws.yml).
 - **GitHub & GitHub Actions**: The codebase resides on GitHub. GitHub Actions is used for CI/CD, automating the process of building the Docker container and pushing it to AWS ECR.
 - **AWS Elastic Container Registry (ECR)**: Stores Docker container images.
 - **AWS ECS Fargate**:
