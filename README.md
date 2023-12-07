@@ -20,7 +20,7 @@ An alternative to deploy a streamlit web app is through AWS Elastic Container Re
 - **Application Load Balancer (ALB)**: Distributes incoming application traffic across multiple targets, such as Amazon ECS tasks.
 - **Virtual Private Cloud (VPC)**: The network that ties everything together. It contains subnets which can be public or private, and in which the ECS tasks and ALB are located.
 
-The deployed app can be accessed [here](http://ec2-3-8-91-13.eu-west-2.compute.amazonaws.com:8502/).
+The deployed app can be accessed [here](http://ec2-18-170-30-28.eu-west-2.compute.amazonaws.com:8502/).
 ![fargate_deployment](references/images/implementation_with_fargate.png)
 
 #### #3: Deploy LLM Chain as a Lambda Function
