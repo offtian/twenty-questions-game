@@ -7,8 +7,10 @@ Cloud-based Architecture Design:
 -----------------
 
 #### #1: Deploy on EC2 instance
-A basic **hosted streamlit web app** deployment design can be found below. Streamlit doesn't support serverless deployment yet, thus an EC2 instance was used for deployment:
+A basic **hosted streamlit web app** deployment design can be found below. This type of deployment requires a server running on EC2 instance, and there is no automatic deployment with the latest version of the image or code repo. Despite using a `t2.micro` instance, the deployment will still be costly and on the server, thus we need to explore other deployment strategies. 
+
 ![basic_deployment](references/images/basic_implementation.png)
+
 
 #### #2: Deploy on ECR + Fargate
 An alternative to deploy a streamlit web app is through AWS Elastic Container Registry (ECR) with AWS ECS Fargate. The deployment workflow can be found in [.github/workflows/aws.yml](./.github/workflows/aws.yml).
